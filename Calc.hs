@@ -45,6 +45,8 @@ import Data.Text as T
 -- Just 2
 -- >>> calc " ( 5 + 5)/ 5 "
 -- Just 2
+-- >>> calc " 6 / 3 * 2 "
+-- Just 1
 calc :: Text -> Maybe Integer
 calc i =
   case p i of
@@ -58,17 +60,14 @@ pmain = do
   eof
   return n
 
-expr = chainl1 term addop
-term  = chainl1 factor mulop
-factor = between spaces spaces (parens expr <|> number)
+expr   = chainl1 (chainl1 (chainl1 (chainl1 factor mult) divide) plus) minus
+factor = whitespace (parens expr <|> number)
 
+whitespace = between spaces spaces
 parens = between (char '(') (char ')')
 
 number :: Parser Integer
 number = fmap read (many1 digit)
-
-addop = plus <|> minus
-mulop = mult <|> divide
 
 plus = do
   char '+'
